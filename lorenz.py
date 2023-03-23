@@ -63,10 +63,10 @@ def animate(
         filename: str = 'animation',
         init_point: np.array = np.array([0, 1, 1.05]),
         fps: int = 25,
-        dur_sec: int = 10,
+        dur_sec: int = 20,
         tail_length: int = 200,
-        line_res: int = 2000,
-        step: float = 0.01
+        line_res: int = 5000,
+        step: float = 0.005
 ) -> None:
 
     # Formatting constants
@@ -138,12 +138,9 @@ def animate(
             cols = np.linspace(0, 1, len(x))
             points = np.array([x, y]).T.reshape(-1, 1, 2)
             segments = np.concatenate([points[:-1], points[1:]], axis=1)
-            lc = LineCollection(segments, cmap='viridis')
+            lc = LineCollection(segments, cmap='plasma')
             lc.set_array(cols)
             ax.add_collection(lc)
-
-            # Plot
-            # ax.plot(x, y)
 
         # Format
         ax.set_xlim(plot_min_x, plot_max_x)
@@ -175,5 +172,27 @@ def animate(
 
 
 if __name__ == '__main__':
-    animate()
+    slow_kwargs = {
+        'n_traces': 10,
+        'filename': 'animation',
+        'init_point': np.array([0, 1, 1.05]),
+        'fps': 25,
+        'dur_sec': 20,
+        'tail_length': 200,
+        'line_res': 5000,
+        'step': 0.005
+    }
+
+    fast_kwargs = {
+        'n_traces': 5,
+        'filename': 'animation',
+        'init_point': np.array([0, 1, 1.05]),
+        'fps': 10,
+        'dur_sec': 10,
+        'tail_length': 200,
+        'line_res': 1000,
+        'step': 0.01
+    }
+
+    animate(**fast_kwargs)
 
