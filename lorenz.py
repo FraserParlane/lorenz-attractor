@@ -38,7 +38,7 @@ def lorenz_generator(
         line_res: int = 500,
 ) -> np.array:
     """
-    Generate a Lorenz path.
+    Generate a Lorenz path
     :param init: Initial point
     :param step: Step size
     :param line_res: Number of steps
@@ -66,11 +66,10 @@ def animate(
         dur_sec: int = 20,
         tail_length: int = 200,
         line_res: int = 5000,
-        step: float = 0.005
+        step: float = 0.005,
+        colorscale: str = 'viridis',
+        bg_color: str = '#22272E',
 ) -> None:
-
-    # Formatting constants
-    bg_color = '#22272E'
 
     # First, prepare the frames folder
     frames_path = os.path.join(os.getcwd(), 'frames')
@@ -92,7 +91,6 @@ def animate(
         )
         lor_points.append(lor_point)
     lor_points = np.array(lor_points)
-    print(lor_points.shape)
 
     # Calculate the bounds of the data for formatting the plot
     min_x = lor_points[:, :, 0].min()
@@ -138,7 +136,7 @@ def animate(
             cols = np.linspace(0, 1, len(x))
             points = np.array([x, y]).T.reshape(-1, 1, 2)
             segments = np.concatenate([points[:-1], points[1:]], axis=1)
-            lc = LineCollection(segments, cmap='plasma')
+            lc = LineCollection(segments, cmap=colorscale)
             lc.set_array(cols)
             ax.add_collection(lc)
 
@@ -180,7 +178,8 @@ if __name__ == '__main__':
         'dur_sec': 20,
         'tail_length': 200,
         'line_res': 5000,
-        'step': 0.005
+        'step': 0.004,
+        'colorscale': 'viridis',
     }
 
     fast_kwargs = {
@@ -191,8 +190,9 @@ if __name__ == '__main__':
         'dur_sec': 10,
         'tail_length': 200,
         'line_res': 1000,
-        'step': 0.01
+        'step': 0.01,
+        'colorscale': 'magma',
+        'bg_color': '#000000',
     }
 
-    animate(**fast_kwargs)
-
+    animate(**slow_kwargs)
