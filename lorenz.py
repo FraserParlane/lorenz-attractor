@@ -34,25 +34,25 @@ def lorenz_iterator(
 
 def lorenz_generator(
         init: np.array = np.array([0, 1, 1.05]),
-        dt: float = 0.01,
-        res: int = 500,
+        step: float = 0.01,
+        line_res: int = 500,
 ) -> np.array:
     """
     Generate a Lorenz path.
     :param init: Initial point
-    :param dt: Step size
-    :param res: Number of steps
+    :param step: Step size
+    :param line_res: Number of steps
     :return: x, y, z array of points
     """
 
     # Initialize array
-    points = np.empty((res + 1, 3))
+    points = np.empty((line_res, 3))
     points[0] = init
 
     # Iterate
-    for i in range(res):
+    for i in range(line_res - 1):
         dot = lorenz_iterator(point=points[i])
-        points[i+1] = points[i] + dot * dt
+        points[i+1] = points[i] + dot * step
 
     # Return values
     return points
@@ -63,10 +63,14 @@ def animate(
         filename: str = 'animation',
         init_point: np.array = np.array([0, 1, 1.05]),
         fps: int = 25,
-        dur: int = 5,
-        res: int = 500,
-        tail_length: int = 100,
+        dur_sec: int = 10,
+        tail_length: int = 200,
+        line_res: int = 2000,
+        step: float = 0.01
 ) -> None:
+
+    # Formatting constants
+    bg_color = '#22272E'
 
     # First, prepare the frames folder
     frames_path = os.path.join(os.getcwd(), 'frames')
@@ -79,7 +83,16 @@ def animate(
     init_points = np.random.normal(init_points, scale=0.1)
 
     # Calculate the Lorentz points
-    lor_points = np.array([lorenz_generator(init_point) for init_point in init_points])
+    lor_points = []
+    for init_point in init_points:
+        lor_point = lorenz_generator(
+            init=init_point,
+            line_res=line_res,
+            step=step,
+        )
+        lor_points.append(lor_point)
+    lor_points = np.array(lor_points)
+    print(lor_points.shape)
 
     # Calculate the bounds of the data for formatting the plot
     min_x = lor_points[:, :, 0].min()
@@ -95,8 +108,8 @@ def animate(
     plot_max_y = max_y + span_y * buffer
 
     # Given the FPS and duration, determine how many points to plot
-    n_frames = fps * dur
-    res_frame = int(res / n_frames)
+    n_frames = fps * dur_sec
+    res_frame = int(line_res / n_frames)
 
     # Store the frame paths
     frame_paths = []
@@ -109,7 +122,9 @@ def animate(
         start = max(0, stop - tail_length)
 
         # Create the plotting objects
-        figure: plt.Figure = plt.figure()
+        figure: plt.Figure = plt.figure(
+            facecolor=bg_color,
+        )
         ax: plt.Axes = figure.add_subplot()
 
         # Iterate through each of the traces
@@ -119,13 +134,22 @@ def animate(
             x = lor_points[j, start:stop, 0]
             y = lor_points[j, start:stop, 2]
 
+            # Generate the gradient line collection
+            cols = np.linspace(0, 1, len(x))
+            points = np.array([x, y]).T.reshape(-1, 1, 2)
+            segments = np.concatenate([points[:-1], points[1:]], axis=1)
+            lc = LineCollection(segments, cmap='viridis')
+            lc.set_array(cols)
+            ax.add_collection(lc)
+
             # Plot
-            ax.plot(x, y)
+            # ax.plot(x, y)
 
         # Format
         ax.set_xlim(plot_min_x, plot_max_x)
         ax.set_ylim(plot_min_y, plot_max_y)
         ax.axis('off')
+        ax.set_facecolor(bg_color)
         figure.subplots_adjust(
             left=0.05,
             right=0.95,
@@ -143,7 +167,11 @@ def animate(
     frames = []
     for frame_path in tqdm(frame_paths):
         frames.append(imageio.v2.imread(frame_path))
-    imageio.mimsave(f'{filename}.gif', frames)
+    imageio.mimsave(
+        f'{filename}.gif',
+        frames,
+        duration=1 / fps,
+    )
 
 
 if __name__ == '__main__':
